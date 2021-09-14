@@ -30,6 +30,8 @@ import sys
 import os
 import zipfile
 import importlib
+import tempfile
+import shutil
 from functools import partial
 
 import numpy as np
@@ -83,7 +85,7 @@ class cTXMCalculator(QtWidgets.QMainWindow):
                             | QtCore.Qt.WindowMinimizeButtonHint)
         self.setFixedSize(self.widgetX, self.widgetY)
         self.main = parent
-        self.zip_basedir = None
+        self.zip_basedir = ''
         self.zip_filename = None
 
         self.__init_figures()
@@ -605,110 +607,122 @@ class cTXMCalculator(QtWidgets.QMainWindow):
         Write data to txt files and plots and zip everything into a single
         zip file.
         """
-        if self.zip_basedir == None:
-            self.zip_fname = QtWidgets.QFileDialog.getSaveFileName(
-                self, 'Name of logfile', '', "Zip files (*.zip)")[0]
-        elif self.zip_basedir != None:
-            self.zip_fname = QtWidgets.QFileDialog.getSaveFileName(
-                self, 'Name of logfile', self.zip_basedir, "Zip files (*.zip)"
-            )[0]
+        if not self.__check_for_active_var():
+            return
+        self.__query_zip_filename()
+        if not self.zip_file_ok:
+            return
+        self.tmpdir = tempfile.mkdtemp()
+        try:
+            self.__create_figures_and_data_for_zip()
+            self.__create_file_with_input_parameters()
+            self.__write_zo_zip()
+        except:
+            raise
+        finally:
+            shutil.rmtree(self.tmpdir)
+
+    def __check_for_active_var(self):
+        """
+        Check that an active var has been set and its size is larger than 1.
+
+        Returns
+        -------
+        bool :
+            Result of the check.
+        """
+        if self.activeVar is None or getattr(self, self.activeVar).size == 1:
+            QtWidgets.QMessageBox.warning(
+                self, 'Warning',
+                'Saving of plots requires focus on one input variable with '
+                'more than one entries. Aborting ...',
+                buttons=QtWidgets.QMessageBox.Ok)
+            return False
+        return True
+
+    def __query_zip_filename(self):
+        """
+        Query the user for a zip filename and check if the file can be opened.
+        """
+        self.zip_file_ok = False
+        self.zip_fname = QtWidgets.QFileDialog.getSaveFileName(
+            self, 'Name of archive filename', '', "Zip files (*.zip)")[0]
         self.zip_basedir = os.path.dirname(self.zip_fname)
         self.zip_filename = os.path.basename(self.zip_fname)
         if self.zip_fname not in ['', None]:
             try:
                 with zipfile.ZipFile(self.zip_fname, 'w') as zobject:
-                    self.zip_fobject = True
+                    self.zip_file_ok = True
             except:
-                self.zip_fobject = None
                 QtWidgets.QMessageBox.critical(
                     self, 'Error',
-                    ('The selected file:\n\t%s\nis ' % (self.zip_fname)
-                     + 'write-protected and cannot be opened.'),
+                    (f'The selected file:\n\t{self.zip_fname}\nis '
+                     'write-protected and cannot be opened. Aborting ...'),
                     buttons=QtWidgets.QMessageBox.Ok)
-                return
-            if self.activeVar == None:
-                return
 
-            if getattr(self, self.activeVar).size > 1:
-                self.plotx = (getattr(self, self.activeVar)
-                              * CONST.SCALING_FACTOR[self.activeVar])
-                for item in CONST.PLOT_AXIS_LABELS.keys():
-                    self.plotTitle = CONST.PLOT_TITLES[self.activeVar]
-                    self.tmpval = (getattr(self, item)
-                                   * CONST.SCALING_FACTOR[item])
-                    if self.tmpval.size == 1:
-                        self.tmpval = np.array(
-                            [self.tmpval] * self.plotx.size)
+    def __create_figures_and_data_for_zip(self):
+        """
+        Create all figures for export.
+        """
+        _plotx = (getattr(self, self.activeVar)
+                  * CONST.SCALING_FACTOR[self.activeVar])
+        for item in CONST.PLOT_AXIS_LABELS.keys():
+            _val = getattr(self, item) * CONST.SCALING_FACTOR[item]
+            if _val.size == 1:
+                _val = np.array([_val] * _plotx.size)
+            self.f3ax.cla()
+            self.f3ax.plot(_plotx, _val, color=CONST.COLORS[3],
+                           linewidth=1.5, markeredgewidth=0, markersize=4,
+                           marker='o')
+            self.f3ax.set_ylabel(CONST.PLOT_AXIS_LABELS[item],
+                                 color=CONST.COLORS[3])
+            self.f3ax.set_xlabel(CONST.PLOT_TITLES[self.activeVar])
+            ylow = np.amin(_val)
+            yhigh = np.amax(_val)
+            ylow = min(0.995 * ylow, 1.01 * ylow)
+            yhigh = max(0.995 * yhigh, 1.01 * yhigh)
+            self.f3ax.set_ylim([ylow, yhigh])
+            self.f3ax.grid(True)
+            self.figure3.savefig(
+                self.tmpdir + os.sep + item + f'_vs_{self.activeVar}.png')
+            np.savetxt(
+                self.tmpdir + os.sep + item + f'_vs_{self.activeVar}.txt',
+                np.asarray([_plotx, _val]).T,
+                header=f'Column 0: {self.activeVar}\nColumn 1: {item}')
 
-                    self.f3ax.plot(
-                        self.plotx, self.tmpval, color=CONST.COLORS[3],
-                        linewidth=1.5, markeredgewidth=0, markersize=4,
-                        marker='o')
-                    self.f3ax.set_ylabel(CONST.PLOT_AXIS_LABELS[item],
-                                         color=CONST.COLORS[3])
-                    self.f3ax.set_xlabel(self.plotTitle)
-                    ylow = np.amin(self.tmpval)
-                    yhigh = np.amax(self.tmpval)
-                    ylow = min(0.995 * ylow, 1.01 * ylow)
-                    yhigh = max(0.995 * yhigh, 1.01 * yhigh)
-                    self.f3ax.set_ylim([ylow, yhigh])
-                    self.f3ax.grid(True)
-                    self.figure3.savefig(
-                        self.zip_basedir + os.sep + item
-                        + '_vs_%s.png' % self.activeVar
-                    )
-                    np.savetxt(
-                        self.zip_basedir + os.sep + item
-                        + '_vs_%s.txt' % self.activeVar,
-                        np.asarray([self.plotx, self.tmpval])
-                    )
-            self.txt_parameters = ''
-            for item in CONST.PLOT_TITLES.keys():
-                writeItem = True
-                if item == 'dist_sample_det' and self.det_useEffPix:
-                    writeItem = False
-                if item == 'eff_pix' and not self.det_useEffPix:
-                    writeItem = False
-                if item == 'BSC_CS' and self.BSC_useFullDet:
-                    writeItem = False
-                if item == 'BSC_field':
-                    writeItem = False
-                if writeItem:
-                    self.txt_parameters += (
-                        utils.stringFill(CONST.PLOT_TITLES[item] + ':', 40)
-                        + ' '
-                        + str(self.__dict__[item]
-                              * CONST.SCALING_FACTOR[item]) + '\n'
-                    )
-            with open(self.zip_basedir + os.sep + '_Input_Parameters.txt',
-                      'w') as f:
-                f.write(self.txt_parameters)
-            try:
-                with zipfile.ZipFile(self.zip_fname, 'w') as zobject:
-                    for item in CONST.PLOT_AXIS_LABELS.keys():
-                        zobject.write(
-                            self.zip_basedir + os.sep + item
-                            + '_vs_%s.png' % self.activeVar,
-                            item + '_vs_%s.png' % self.activeVar
-                        )
-                        zobject.write(
-                            self.zip_basedir + os.sep + item
-                            + '_vs_%s.txt' % self.activeVar,
-                            item + '_vs_%s.txt' % self.activeVar)
-                        os.remove(self.zip_basedir + os.sep + item
-                            + '_vs_%s.txt' % self.activeVar)
-                        os.remove(self.zip_basedir + os.sep + item
-                            + '_vs_%s.png' % self.activeVar)
-                    zobject.write(self.zip_basedir + os.sep + '_Input_Parameters.txt',
+    def __create_file_with_input_parameters(self):
+        """
+        Create a text file which includes all the input parameters for
+        reference.
+        """
+        _txt_parameters = ''
+        for item in CONST.PLOT_TITLES.keys():
+            # writeItem = True
+            if ((item == 'dist_sample_det' and self.det_useEffPix)
+                    or (item == 'eff_pix' and not self.det_useEffPix)
+                    or (item == 'BSC_CS' and self.BSC_useFullDet)
+                    or item == 'BSC_field'):
+                continue
+            _txt_parameters += (
+                utils.stringFill(CONST.PLOT_TITLES[item] + ':', 40) + ' '
+                + str(getattr(self, item) * CONST.SCALING_FACTOR[item]) + '\n')
+        with open(self.tmpdir + os.sep + '_Input_Parameters.txt', 'w') as f:
+            f.write(_txt_parameters)
+
+    def __write_zo_zip(self):
+        """
+        Write all the stored text files and images to the zip file.
+        """
+        with zipfile.ZipFile(self.zip_fname, 'w') as zobject:
+            for item in CONST.PLOT_AXIS_LABELS.keys():
+                zobject.write(
+                    self.tmpdir + os.sep + item + f'_vs_{self.activeVar}.png',
+                    item + f'_vs_{self.activeVar}.png')
+                zobject.write(
+                    self.tmpdir + os.sep + item + f'_vs_{self.activeVar}.txt',
+                    item + f'_vs_{self.activeVar}.txt')
+            zobject.write(self.tmpdir + os.sep + '_Input_Parameters.txt',
                         '_Input_Parameters.txt')
-                    os.remove(self.zip_basedir + os.sep + '_Input_Parameters.txt')
-            except:
-                self.zip_fobject = None
-                QtWidgets.QMessageBox.critical(
-                    self, 'Error',
-                    "Error writing zip file\n\t%s." % (self.zip_fname),
-                    buttons=QtWidgets.QMessageBox.Ok
-                )
 
     def closeEvent(self, event, reply=None):
         """Safety check for closing of window."""
