@@ -14,10 +14,10 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QComboBox" name="comboBox_plot1_type">
+   <widget class="QComboBox" name="comboBox_plot1">
     <property name="geometry">
      <rect>
-      <x>520</x>
+      <x>590</x>
       <y>80</y>
       <width>91</width>
       <height>22</height>
@@ -46,7 +46,7 @@
    <widget class="QLabel" name="label_37">
     <property name="geometry">
      <rect>
-      <x>410</x>
+      <x>480</x>
       <y>20</y>
       <width>91</width>
       <height>22</height>
@@ -65,7 +65,7 @@
    <widget class="QLabel" name="label_38">
     <property name="geometry">
      <rect>
-      <x>410</x>
+      <x>480</x>
       <y>50</y>
       <width>101</width>
       <height>22</height>
@@ -105,7 +105,7 @@
    <widget class="QLabel" name="label_52">
     <property name="geometry">
      <rect>
-      <x>409</x>
+      <x>479</x>
       <y>80</y>
       <width>101</width>
       <height>22</height>
@@ -124,7 +124,7 @@
    <widget class="QDoubleSpinBox" name="edit_plot1low">
     <property name="geometry">
      <rect>
-      <x>520</x>
+      <x>590</x>
       <y>50</y>
       <width>91</width>
       <height>22</height>
@@ -155,7 +155,7 @@
    <widget class="QDoubleSpinBox" name="edit_plot1high">
     <property name="geometry">
      <rect>
-      <x>520</x>
+      <x>590</x>
       <y>20</y>
       <width>91</width>
       <height>22</height>
@@ -186,7 +186,7 @@
    <widget class="QLabel" name="label_66">
     <property name="geometry">
      <rect>
-      <x>640</x>
+      <x>710</x>
       <y>80</y>
       <width>91</width>
       <height>22</height>
@@ -202,10 +202,10 @@
      <string>Y2 axis type:</string>
     </property>
    </widget>
-   <widget class="QComboBox" name="comboBox_plot2_type">
+   <widget class="QComboBox" name="comboBox_plot2">
     <property name="geometry">
      <rect>
-      <x>750</x>
+      <x>820</x>
       <y>80</y>
       <width>91</width>
       <height>22</height>
@@ -234,7 +234,7 @@
    <widget class="QDoubleSpinBox" name="edit_plot2low">
     <property name="geometry">
      <rect>
-      <x>750</x>
+      <x>820</x>
       <y>50</y>
       <width>91</width>
       <height>22</height>
@@ -265,7 +265,7 @@
    <widget class="QDoubleSpinBox" name="edit_plot2high">
     <property name="geometry">
      <rect>
-      <x>750</x>
+      <x>820</x>
       <y>20</y>
       <width>91</width>
       <height>22</height>
@@ -296,7 +296,7 @@
    <widget class="QLabel" name="label_39">
     <property name="geometry">
      <rect>
-      <x>640</x>
+      <x>710</x>
       <y>20</y>
       <width>91</width>
       <height>22</height>
@@ -315,7 +315,7 @@
    <widget class="QLabel" name="label_67">
     <property name="geometry">
      <rect>
-      <x>640</x>
+      <x>710</x>
       <y>50</y>
       <width>101</width>
       <height>22</height>
@@ -334,7 +334,7 @@
    <widget class="QLabel" name="label_69">
     <property name="geometry">
      <rect>
-      <x>409</x>
+      <x>479</x>
       <y>110</y>
       <width>101</width>
       <height>22</height>
@@ -353,7 +353,7 @@
    <widget class="QComboBox" name="comboBox_plot1_autoscale">
     <property name="geometry">
      <rect>
-      <x>520</x>
+      <x>590</x>
       <y>110</y>
       <width>91</width>
       <height>22</height>
@@ -382,7 +382,7 @@
    <widget class="QComboBox" name="comboBox_plot2_autoscale">
     <property name="geometry">
      <rect>
-      <x>750</x>
+      <x>820</x>
       <y>110</y>
       <width>91</width>
       <height>22</height>
@@ -411,7 +411,7 @@
    <widget class="QLabel" name="label_70">
     <property name="geometry">
      <rect>
-      <x>640</x>
+      <x>710</x>
       <y>110</y>
       <width>91</width>
       <height>22</height>
@@ -430,7 +430,7 @@
    <widget class="QLabel" name="label_77">
     <property name="geometry">
      <rect>
-      <x>410</x>
+      <x>480</x>
       <y>140</y>
       <width>101</width>
       <height>22</height>
@@ -449,7 +449,7 @@
    <widget class="QLabel" name="label_78">
     <property name="geometry">
      <rect>
-      <x>410</x>
+      <x>480</x>
       <y>170</y>
       <width>101</width>
       <height>22</height>
@@ -468,7 +468,7 @@
    <widget class="QComboBox" name="comboBox_plot1_variable">
     <property name="geometry">
      <rect>
-      <x>520</x>
+      <x>590</x>
       <y>140</y>
       <width>321</width>
       <height>22</height>
@@ -590,7 +590,7 @@
    <widget class="QComboBox" name="comboBox_plot2_variable">
     <property name="geometry">
      <rect>
-      <x>520</x>
+      <x>590</x>
       <y>170</y>
       <width>321</width>
       <height>22</height>
@@ -712,9 +712,9 @@
    <widget class="QPushButton" name="but_SaveData">
     <property name="geometry">
      <rect>
-      <x>20</x>
+      <x>10</x>
       <y>1042</y>
-      <width>370</width>
+      <width>461</width>
       <height>31</height>
      </rect>
     </property>
@@ -753,7 +753,7 @@
      <rect>
       <x>230</x>
       <y>207</y>
-      <width>160</width>
+      <width>215</width>
       <height>20</height>
      </rect>
     </property>
@@ -769,6 +769,26 @@
     </property>
     <property name="alignment">
      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="but_SetEnergy">
+    <property name="geometry">
+     <rect>
+      <x>400</x>
+      <y>62</y>
+      <width>51</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>11</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Set</string>
     </property>
    </widget>
    <widget class="QLineEdit" name="edit_energy">
@@ -796,7 +816,7 @@
      <rect>
       <x>230</x>
       <y>255</y>
-      <width>160</width>
+      <width>215</width>
       <height>20</height>
      </rect>
     </property>
@@ -839,7 +859,7 @@
      <rect>
       <x>230</x>
       <y>159</y>
-      <width>160</width>
+      <width>215</width>
       <height>20</height>
      </rect>
     </property>
@@ -1009,6 +1029,26 @@
      <string>relative X-ray energy bandwidth:</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="but_SetBandwidth">
+    <property name="geometry">
+     <rect>
+      <x>400</x>
+      <y>86</y>
+      <width>51</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>11</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Set</string>
+    </property>
+   </widget>
    <widget class="QLabel" name="label_58">
     <property name="geometry">
      <rect>
@@ -1030,6 +1070,26 @@
     </property>
     <property name="alignment">
      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="but_SetFZP_D">
+    <property name="geometry">
+     <rect>
+      <x>400</x>
+      <y>134</y>
+      <width>51</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>11</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Set</string>
     </property>
    </widget>
    <widget class="QLineEdit" name="edit_FZP_D">
@@ -1080,7 +1140,7 @@
      <rect>
       <x>230</x>
       <y>279</y>
-      <width>160</width>
+      <width>215</width>
       <height>20</height>
      </rect>
     </property>
@@ -1103,7 +1163,7 @@
      <rect>
       <x>230</x>
       <y>183</y>
-      <width>160</width>
+      <width>215</width>
       <height>20</height>
      </rect>
     </property>
@@ -1161,12 +1221,32 @@
      <string>1e-3</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="but_SetFZP_dr">
+    <property name="geometry">
+     <rect>
+      <x>400</x>
+      <y>110</y>
+      <width>51</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>11</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Set</string>
+    </property>
+   </widget>
    <widget class="QLabel" name="label_FZP_DOF">
     <property name="geometry">
      <rect>
       <x>230</x>
       <y>231</y>
-      <width>160</width>
+      <width>215</width>
       <height>20</height>
      </rect>
     </property>
@@ -1252,7 +1332,7 @@
      <rect>
       <x>230</x>
       <y>487</y>
-      <width>160</width>
+      <width>215</width>
       <height>20</height>
      </rect>
     </property>
@@ -1271,12 +1351,32 @@
      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
     </property>
    </widget>
+   <widget class="QPushButton" name="but_SetDistSampleDet">
+    <property name="geometry">
+     <rect>
+      <x>400</x>
+      <y>459</y>
+      <width>51</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>11</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Set</string>
+    </property>
+   </widget>
    <widget class="QLabel" name="label_FZP_angularFOV">
     <property name="geometry">
      <rect>
       <x>230</x>
       <y>607</y>
-      <width>160</width>
+      <width>215</width>
       <height>20</height>
      </rect>
     </property>
@@ -1459,7 +1559,7 @@
      <rect>
       <x>230</x>
       <y>559</y>
-      <width>160</width>
+      <width>215</width>
       <height>20</height>
      </rect>
     </property>
@@ -1507,7 +1607,7 @@
      <rect>
       <x>230</x>
       <y>511</y>
-      <width>160</width>
+      <width>215</width>
       <height>20</height>
      </rect>
     </property>
@@ -1524,6 +1624,46 @@
     </property>
     <property name="alignment">
      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="but_SetM_det">
+    <property name="geometry">
+     <rect>
+      <x>400</x>
+      <y>335</y>
+      <width>51</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>11</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Set</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="but_SetPixSize">
+    <property name="geometry">
+     <rect>
+      <x>400</x>
+      <y>359</y>
+      <width>51</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>11</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Set</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_input_eff_pix">
@@ -1552,7 +1692,7 @@
      <rect>
       <x>230</x>
       <y>655</y>
-      <width>160</width>
+      <width>215</width>
       <height>20</height>
      </rect>
     </property>
@@ -1591,12 +1731,32 @@
      <string>50</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="but_SetDet_Nvert">
+    <property name="geometry">
+     <rect>
+      <x>400</x>
+      <y>407</y>
+      <width>51</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>11</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Set</string>
+    </property>
+   </widget>
    <widget class="QLabel" name="label_det_FOVvert">
     <property name="geometry">
      <rect>
       <x>230</x>
       <y>535</y>
-      <width>160</width>
+      <width>215</width>
       <height>20</height>
      </rect>
     </property>
@@ -1620,7 +1780,7 @@
      <rect>
       <x>230</x>
       <y>631</y>
-      <width>160</width>
+      <width>215</width>
       <height>20</height>
      </rect>
     </property>
@@ -1781,7 +1941,7 @@
      <rect>
       <x>230</x>
       <y>583</y>
-      <width>160</width>
+      <width>215</width>
       <height>20</height>
      </rect>
     </property>
@@ -1798,6 +1958,26 @@
     </property>
     <property name="alignment">
      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="but_SetDet_Nhor">
+    <property name="geometry">
+     <rect>
+      <x>400</x>
+      <y>383</y>
+      <width>51</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>11</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Set</string>
     </property>
    </widget>
    <widget class="QLineEdit" name="edit_det_PixSize">
@@ -1838,6 +2018,26 @@
     </property>
     <property name="text">
      <string>2048</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="but_SetEffPix">
+    <property name="geometry">
+     <rect>
+      <x>400</x>
+      <y>459</y>
+      <width>51</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>11</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Set</string>
     </property>
    </widget>
    <widget class="QLineEdit" name="edit_dist_sample_det">
@@ -1886,7 +2086,7 @@
      <rect>
       <x>230</x>
       <y>487</y>
-      <width>160</width>
+      <width>215</width>
       <height>20</height>
      </rect>
     </property>
@@ -1910,7 +2110,7 @@
      <rect>
       <x>20</x>
       <y>432</y>
-      <width>370</width>
+      <width>431</width>
       <height>22</height>
      </rect>
     </property>
@@ -1962,7 +2162,7 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>862</y>
+      <y>858</y>
       <width>205</width>
       <height>22</height>
      </rect>
@@ -1986,7 +2186,7 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>838</y>
+      <y>834</y>
       <width>205</width>
       <height>22</height>
      </rect>
@@ -2006,11 +2206,31 @@
      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
     </property>
    </widget>
+   <widget class="QPushButton" name="but_SetBSC_field">
+    <property name="geometry">
+     <rect>
+      <x>400</x>
+      <y>734</y>
+      <width>51</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>11</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Set</string>
+    </property>
+   </widget>
    <widget class="QLabel" name="label_23">
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>787</y>
+      <y>786</y>
       <width>205</width>
       <height>22</height>
      </rect>
@@ -2047,12 +2267,12 @@
      <string>1.5</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label_BSC_freeArea">
+   <widget class="QLabel" name="label_bsc_free_area">
     <property name="geometry">
      <rect>
       <x>230</x>
-      <y>886</y>
-      <width>160</width>
+      <y>882</y>
+      <width>215</width>
       <height>20</height>
      </rect>
     </property>
@@ -2075,7 +2295,7 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>814</y>
+      <y>810</y>
       <width>205</width>
       <height>22</height>
      </rect>
@@ -2120,7 +2340,7 @@
      <rect>
       <x>20</x>
       <y>760</y>
-      <width>370</width>
+      <width>431</width>
       <height>22</height>
      </rect>
     </property>
@@ -2169,12 +2389,12 @@
      <string>BSC field size [um]:</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label_BSC_effFOV">
+   <widget class="QLabel" name="label_eff_fov">
     <property name="geometry">
      <rect>
       <x>230</x>
-      <y>862</y>
-      <width>160</width>
+      <y>858</y>
+      <width>215</width>
       <height>20</height>
      </rect>
     </property>
@@ -2193,12 +2413,12 @@
      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
     </property>
    </widget>
-   <widget class="QLabel" name="label_BSC_f">
+   <widget class="QLabel" name="label_bsc_f">
     <property name="geometry">
      <rect>
       <x>230</x>
-      <y>814</y>
-      <width>160</width>
+      <y>810</y>
+      <width>215</width>
       <height>20</height>
      </rect>
     </property>
@@ -2215,6 +2435,26 @@
     </property>
     <property name="alignment">
      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="but_SetBSC_D">
+    <property name="geometry">
+     <rect>
+      <x>400</x>
+      <y>710</y>
+      <width>51</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>11</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Set</string>
     </property>
    </widget>
    <widget class="QLineEdit" name="edit_BSC_field">
@@ -2237,11 +2477,31 @@
      <string>60</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="but_SetBSC_CS">
+    <property name="geometry">
+     <rect>
+      <x>400</x>
+      <y>786</y>
+      <width>51</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>11</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Set</string>
+    </property>
+   </widget>
    <widget class="QLabel" name="label_76">
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>886</y>
+      <y>882</y>
       <width>205</width>
       <height>22</height>
      </rect>
@@ -2261,12 +2521,12 @@
      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
     </property>
    </widget>
-   <widget class="QLabel" name="label_dist_BSC_sample">
+   <widget class="QLabel" name="label_bsc_work_dist">
     <property name="geometry">
      <rect>
       <x>230</x>
-      <y>838</y>
-      <width>160</width>
+      <y>834</y>
+      <width>215</width>
       <height>20</height>
      </rect>
     </property>
@@ -2285,12 +2545,12 @@
      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
     </property>
    </widget>
-   <widget class="QLabel" name="label_BSC_CS">
+   <widget class="QLabel" name="label_cs_size">
     <property name="geometry">
      <rect>
       <x>230</x>
       <y>788</y>
-      <width>160</width>
+      <width>215</width>
       <height>20</height>
      </rect>
     </property>
@@ -2378,12 +2638,12 @@
      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
     </property>
    </widget>
-   <widget class="QLabel" name="label_FOV_vert">
+   <widget class="QLabel" name="label_fov_vert">
     <property name="geometry">
      <rect>
       <x>230</x>
       <y>976</y>
-      <width>160</width>
+      <width>215</width>
       <height>20</height>
      </rect>
     </property>
@@ -2426,12 +2686,12 @@
      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
     </property>
    </widget>
-   <widget class="QLabel" name="label_total_eff">
+   <widget class="QLabel" name="label_efficiency">
     <property name="geometry">
      <rect>
       <x>230</x>
       <y>1000</y>
-      <width>160</width>
+      <width>215</width>
       <height>20</height>
      </rect>
     </property>
@@ -2450,12 +2710,12 @@
      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
     </property>
    </widget>
-   <widget class="QLabel" name="label_FOV_hor">
+   <widget class="QLabel" name="label_fov_hor">
     <property name="geometry">
      <rect>
       <x>230</x>
       <y>950</y>
-      <width>160</width>
+      <width>215</width>
       <height>20</height>
      </rect>
     </property>
@@ -2480,11 +2740,11 @@
   <tabstop>but_SaveData</tabstop>
   <tabstop>edit_plot1low</tabstop>
   <tabstop>edit_plot1high</tabstop>
-  <tabstop>comboBox_plot1_type</tabstop>
+  <tabstop>comboBox_plot1</tabstop>
   <tabstop>comboBox_plot1_autoscale</tabstop>
   <tabstop>edit_plot2low</tabstop>
   <tabstop>edit_plot2high</tabstop>
-  <tabstop>comboBox_plot2_type</tabstop>
+  <tabstop>comboBox_plot2</tabstop>
   <tabstop>comboBox_plot2_autoscale</tabstop>
   <tabstop>comboBox_plot1_variable</tabstop>
   <tabstop>comboBox_plot2_variable</tabstop>

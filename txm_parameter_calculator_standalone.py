@@ -54,9 +54,16 @@ spec = importlib.util.spec_from_file_location(
     'txm_parameter_calculator_utils',
     os.path.join(os.path.dirname(__file__),
                  'txm_parameter_calculator_utils.py'))
-UTILS = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(UTILS)
+utils = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(utils)
 
+
+spec = importlib.util.spec_from_file_location(
+    'txm_parameter_calculator_generic_values',
+    os.path.join(os.path.dirname(__file__),
+                 'txm_parameter_calculator_generic_values.py'))
+generics = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(generics)
 
 
 class cTXMCalculator(QtWidgets.QMainWindow):
@@ -82,7 +89,7 @@ class cTXMCalculator(QtWidgets.QMainWindow):
         self.__init_figures()
         self.__init_optics_parameters()
         self.__init_slot_connections()
-        self.__init_styles_and_layout()
+        self.__init_widget_visibilities()
 
     def __init_figures(self):
         """
@@ -91,22 +98,22 @@ class cTXMCalculator(QtWidgets.QMainWindow):
         self.figure1 = plt.figure(1, figsize=(11, 8), dpi=80)
         self.figure1Canvas = FigureCanvas(self.figure1)
         self.figure1Canvas.setParent(self)
-        self.figure1Canvas.setGeometry(480, 200, self.widgetX - 480 - 10,
+        self.figure1Canvas.setGeometry(410, 200, self.widgetX - 410 - 10,
                                        self.widgetY - 200 - 10)
         self.f1ax1 = self.figure1.add_axes([0.085, 0.1, 0.84, 0.87])
         self.f1ax2 = self.f1ax1.twinx()
-        self.plot1Type = 'linear'
-        self.plot2Type = 'linear'
+        self.plot1_type = 'linear'
+        self.plot2_type = 'linear'
         self.plot1ylow = 0
         self.plot1yhigh = 1
         self.plot2ylow = 0
         self.plot2yhigh = 1
         self.plot1var = None
         self.plot2var = None
-        self.plot1Autoscale = True
-        self.plot2Autoscale = True
-        self.ax1plotContent = False
-        self.ax2plotContent = False
+        self.plot1_autoscale = True
+        self.plot2_autoscale = True
+        self.axContentPlot1 = False
+        self.axContentPlot2 = False
         self.f2plotContent = False
         self.activeVar = None
         self.figureExists = False
@@ -115,7 +122,7 @@ class cTXMCalculator(QtWidgets.QMainWindow):
         self.figure2 = plt.figure(2, figsize=(6, 4), dpi=80)
         self.figure2Canvas = FigureCanvas(self.figure2)
         self.figure2Canvas.setParent(self)
-        self.figure2Canvas.setGeometry(920, 10, self.widgetX - 920 - 10,
+        self.figure2Canvas.setGeometry(890, 10, self.widgetX - 890 - 10,
                                        200 - 10)
         self.figure2ax = self.figure2.add_axes([0.085, 0.34, 0.84, 0.6])
 
@@ -129,372 +136,178 @@ class cTXMCalculator(QtWidgets.QMainWindow):
         Initialize the required attributes for the optical calculations.
         """
         # parameters 1 (beamline and FZP)
-        self.energy = np.asarray(12)
-        self.bandwidth = np.asarray(1e-3)
-        self.FZP_dr = np.asarray(50e-9)
-        self.FZP_D = np.asarray(150e-6)
+        for _att in ['energy', 'bandwidth', 'FZP_dr', 'FZP_D', 'M_det',
+                     'det_PixSize', 'det_Nhor', 'det_Nvert', 'dist_sample_det',
+                     'BSC_D', 'BSC_CS', 'BSC_field']:
+            _val = generics.__getattribute__(_att.upper())
+            setattr(self, _att, np.asarray(_val))
+            self._update_edit_value(_att, _val)
 
-        # parameters 2 (detector)
-        self.M_det = np.asarray(1)
-        self.det_PixSize = np.asarray(6.5e-6)
-        self.det_Nhor = np.asarray(2048)
-        self.det_Nvert = np.asarray(2048)
         self.det_useEffPix = False
-        self.eff_pix = np.asarray(50e-9)
-        self.dist_sample_det = np.asarray(8.3)
-
-        # parameters 3 (beamshaper)
-        self.BSC_D = np.asarray(2.9e-3)
-        self.BSC_CS = np.asarray(1.5e-3)
-        self.BSC_dr = np.asarray(50e-9)
-        self.BSC_field = np.asarray(60e-6)
         self.BSC_useFullDet = False
+
+    def _update_edit_value(self, att, value):
+        """
+        Update an input edit with a new value.
+
+        Parameters
+        ----------
+        att : str
+            The attribute name.
+        value : object
+            Any object which has a string representation.
+        """
+        _edit = getattr(self, f'edit_{att}')
+        _edit.setText(str(value * CONST.SCALING_FACTOR[att]))
 
     def __init_slot_connections(self):
         """
         Connect all slots and signals.
         """
-        self.but_SetEnergy.clicked.connect(partial(
-            self.clickButtonSetAttribute, 'energy', self._updateParameters1))
-        self.edit_energy.returnPressed.connect(partial(
-            self.clickButtonSetAttribute, 'energy', self._updateParameters1))
+        self.edit_energy.editingFinished.connect(partial(
+            self.update_attribute, 'energy', self._updateParameters1))
 
-        self.but_SetBandwidth.clicked.connect(partial(
-            self.clickButtonSetAttribute, 'bandwidth',
-            self._updateParameters1))
-        self.edit_bandwidth.returnPressed.connect(partial(
-            self.clickButtonSetAttribute, 'bandwidth',
+        self.edit_bandwidth.editingFinished.connect(partial(
+            self.update_attribute, 'bandwidth',
             self._updateParameters1))
 
-        self.but_SetFZP_dr.clicked.connect(partial(
-            self.clickButtonSetAttribute, 'FZP_dr', self._updateParameters1))
-        self.edit_FZP_dr.returnPressed.connect(partial(
-            self.clickButtonSetAttribute, 'FZP_dr', self._updateParameters1))
-
-        self.but_SetFZP_D.clicked.connect(partial(
-            self.clickButtonSetAttribute, 'FZP_D', self._updateParameters1))
-        self.edit_FZP_D.returnPressed.connect(partial(
-            self.clickButtonSetAttribute, 'FZP_D', self._updateParameters1))
-
-        self.but_SetM_det.clicked.connect(partial(
-            self.clickButtonSetAttribute, 'M_det', self._updateParameters2))
-        self.edit_M_det.returnPressed.connect(partial(
-            self.clickButtonSetAttribute, 'M_det', self._updateParameters2))
-
-        self.but_SetPixSize.clicked.connect(partial(
-            self.clickButtonSetAttribute, 'eff_pix', self._updateParameters2))
-        self.edit_det_PixSize.returnPressed.connect(partial(
-            self.clickButtonSetAttribute, 'eff_pix', self._updateParameters2))
-
-        self.but_SetDet_Nhor.clicked.connect(partial(
-            self.clickButtonSetAttribute, 'det_Nhor', self._updateParameters2))
-        self.edit_det_Nhor.returnPressed.connect(partial(
-            self.clickButtonSetAttribute, 'det_Nhor', self._updateParameters2))
-
-        self.but_SetDet_Nvert.clicked.connect(partial(
-            self.clickButtonSetAttribute, 'det_Nvert',
+        self.edit_FZP_dr.editingFinished.connect(partial(
+            self.update_attribute, 'FZP_dr', self._updateParameters1))
+        self.edit_FZP_D.editingFinished.connect(partial(
+            self.update_attribute, 'FZP_D', self._updateParameters1))
+        self.edit_M_det.editingFinished.connect(partial(
+            self.update_attribute, 'M_det', self._updateParameters2))
+        self.edit_det_PixSize.editingFinished.connect(partial(
+            self.update_attribute, 'det_PixSize',
             self._updateParameters2))
-        self.edit_det_Nvert.returnPressed.connect(partial(
-            self.clickButtonSetAttribute, 'det_Nvert',
+        self.edit_det_Nhor.editingFinished.connect(partial(
+            self.update_attribute, 'det_Nhor', self._updateParameters2))
+        self.edit_det_Nvert.editingFinished.connect(partial(
+            self.update_attribute, 'det_Nvert',
             self._updateParameters2))
 
         self.comboBox_ParametersDet.currentIndexChanged.connect(
             self.selectParametersDet)
 
-        self.but_SetDistSampleDet.clicked.connect(partial(
-            self.clickButtonSetAttribute, 'dist_sample_det',
+        self.edit_dist_sample_det.editingFinished.connect(partial(
+            self.update_attribute, 'dist_sample_det',
             self._updateParameters2))
-        self.edit_dist_sample_det.returnPressed.connect(partial(
-            self.clickButtonSetAttribute, 'dist_sample_det',
-            self._updateParameters2))
-
-        self.but_SetEffPix.clicked.connect(partial(
-            self.clickButtonSetAttribute, 'eff_pix', self._updateParameters2))
-        self.edit_eff_pix.returnPressed.connect(partial(
-            self.clickButtonSetAttribute, 'eff_pix', self._updateParameters2))
-
-        self.but_SetBSC_D.clicked.connect(partial(
-            self.clickButtonSetAttribute, 'BSC_D', self._updateParameters3))
-        self.edit_BSC_D.returnPressed.connect(partial(
-            self.clickButtonSetAttribute, 'BSC_D', self._updateParameters3))
+        self.edit_eff_pix.editingFinished.connect(partial(
+            self.update_attribute, 'eff_pix', self._updateParameters2))
+        self.edit_BSC_D.editingFinished.connect(partial(
+            self.update_attribute, 'BSC_D', self._updateParameters3))
 
         self.comboBox_ParametersCS.currentIndexChanged.connect(
             self.selectParametersCS)
-
-        self.but_SetBSC_CS.clicked.connect(partial(
-            self.clickButtonSetAttribute, 'BSC_CS', self._updateParameters3))
-        self.edit_BSC_CS.returnPressed.connect(partial(
-            self.clickButtonSetAttribute, 'BSC_CS', self._updateParameters3))
-
-        self.but_SetBSC_field.clicked.connect(partial(
-            self.clickButtonSetAttribute, 'BSC_field',
-            self._updateParameters3))
-        self.edit_BSC_field.returnPressed.connect(partial(
-            self.clickButtonSetAttribute, 'BSC_field',
+        self.edit_BSC_CS.editingFinished.connect(partial(
+            self.update_attribute, 'BSC_CS', self._updateParameters3))
+        self.edit_BSC_field.editingFinished.connect(partial(
+            self.update_attribute, 'BSC_field',
             self._updateParameters3))
 
         self.but_SaveData.clicked.connect(self.writeData)
         self._updateParameters1()
 
         # plotting parameters:
-        self.edit_plot1Low.valueChanged.connect(self.changePlot1LimitLow)
-        self.edit_plot1High.valueChanged.connect(self.changePlot1LimitHigh)
-        self.edit_plot2Low.valueChanged.connect(self.changePlot2LimitLow)
-        self.edit_plot2High.valueChanged.connect(self.changePlot2LimitHigh)
-        self.comboBox_plot1.currentIndexChanged.connect(self.changePlot1Type)
+        self.edit_plot1low.valueChanged.connect(partial(
+            self.change_plot_limit, 1, 'low'))
+        self.edit_plot1high.valueChanged.connect(partial(
+            self.change_plot_limit, 1, 'high'))
+        self.comboBox_plot1_type.currentIndexChanged.connect(partial(
+            self.change_plot_type, 1))
         self.comboBox_plot1_autoscale.currentIndexChanged.connect(
-            self.changePlot1Autoscale)
+            partial(self.change_plot_autoscale, 1))
         self.comboBox_plot1_variable.currentIndexChanged.connect(
-            self.changePlot1Variable)
-        self.comboBox_plot2_variable.currentIndexChanged.connect(
-            self.changePlot2Variable)
-        self.comboBox_plot2.currentIndexChanged.connect(self.changePlot2Type)
-        self.comboBox_plot2_autoscale.currentIndexChanged.connect(
-            self.changePlot2Autoscale)
+            partial(self.change_plot_variable, 1))
 
-    def __init_styles_and_layout(self):
+        self.edit_plot2low.valueChanged.connect(partial(
+            self.change_plot_limit, 2, 'low'))
+        self.edit_plot2high.valueChanged.connect(partial(
+            self.change_plot_limit, 2, 'high'))
+        self.comboBox_plot2_variable.currentIndexChanged.connect(
+            partial(self.change_plot_variable, 2))
+        self.comboBox_plot2_type.currentIndexChanged.connect(partial(
+            self.change_plot_type, 2))
+        self.comboBox_plot2_autoscale.currentIndexChanged.connect(
+            partial(self.change_plot_autoscale, 2))
+
+    def __init_widget_visibilities(self):
         """
         Initialize styles and layout and set widget properties.
         """
-        self.button_style = CONST.BUTTON_STYLE
-        self.spin_style = CONST.SPIN_STYLE
-        self.textbox_style = CONST.TEXTBOX_STYLE
-        self.palette_red = QtGui.QPalette()
-        self.palette_red.setColor(QtGui.QPalette.Foreground, QtCore.Qt.red)
-
-        self.palette_green = QtGui.QPalette()
-        self.palette_green.setColor(QtGui.QPalette.Foreground, QtCore.Qt.green)
-
-        self.palette_blk = QtGui.QPalette()
-        self.palette_blk.setColor(QtGui.QPalette.Foreground, QtCore.Qt.black)
-
-        self.palette_blue = QtGui.QPalette()
-        self.palette_blue.setColor(QtGui.QPalette.Foreground, QtCore.Qt.blue)
-
-        for item in [self.label_21, self.edit_dist_sample_det,
-                     self.but_SetDistSampleDet, self.label_54, self.label_104]:
-            item.setVisible(False)
-        for item in [self.label_20, self.edit_eff_pix, self.but_SetEffPix,
-                     self.label_53, self.label_103]:
+        for item in [self.label_input_dist_sample_det,
+                     self.edit_dist_sample_det, self.label_eff_pix,
+                     self.label_name_eff_pix]:
             item.setVisible(True)
-        for item in [self.edit_BSC_CS, self.but_SetBSC_CS]:
+        for item in [self.label_input_eff_pix, self.edit_eff_pix,
+                     self.label_name_dist_sample_det,
+                     self.label_dist_sample_det]:
             item.setVisible(False)
+        self.edit_dist_sample_det.setText(str(self.dist_sample_det))
 
-        self.stdfont = QtGui.QFont()
-        self.stdfont.setFamily("Arial")
-        self.stdfont.setPointSize(11)
-
-        self.stdfontsmall = QtGui.QFont()
-        self.stdfontsmall.setFamily("Arial")
-        self.stdfontsmall.setPointSize(8)
-
-        self.stdfontbold = QtGui.QFont()
-        self.stdfontbold.setFamily("Arial")
-        self.stdfontbold.setPointSize(11)
-        self.stdfontbold.setBold(True)
-        self.stdfontbold.setWeight(75)
-
-        tmp = str(self.comboBox_ParametersDet.currentText())
-        if tmp == 'Set detector effective pixel size':
-            self.det_useEffPix = True
-            for item in [self.label_21, self.edit_dist_sample_det,
-                         self.but_SetDistSampleDet, self.label_54,
-                         self.label_104]:
-                item.setVisible(False)
-            for item in [self.label_20, self.edit_eff_pix, self.but_SetEffPix,
-                         self.label_53, self.label_103]:
-                item.setVisible(True)
-            self.edit_eff_pix.setText(str(self.eff_pix * 1e9))
-        if tmp == 'Set target distance sample-det':
-            self.det_useEffPix = False
-            for item in [self.label_21, self.edit_dist_sample_det,
-                         self.but_SetDistSampleDet, self.label_54,
-                         self.label_104]:
-                item.setVisible(True)
-            for item in [self.label_20, self.edit_eff_pix, self.but_SetEffPix,
-                         self.label_53, self.label_103]:
-                item.setVisible(False)
-                self.edit_dist_sample_det.setText(str(self.dist_sample_det))
-
-        tmp = str(self.comboBox_ParametersCS.currentText())
-        if tmp == 'Use full detector FOV':
-            self.BSC_useFullDet = True
-            for item in [self.edit_BSC_CS, self.but_SetBSC_CS]:
-                item.setVisible(False)
-            self.label_200.setVisible(True)
-        if tmp == 'Select central stop size':
-            self.BSC_useFullDet = False
-            for item in [self.edit_BSC_CS, self.but_SetBSC_CS]:
-                item.setVisible(True)
-            self.label_200.setVisible(False)
-        self.RefreshPlot()
+        self.edit_BSC_CS.setVisible(True)
+        self.label_BSC_CS.setVisible(False)
+        self.refresh_plots()
         self.show()
 
-    def _updateParameters1(self):
-        self.wavelength = np.asarray(12.398 / self.energy * 1e-10)
-        self.FZP_resolution = np.asarray(1.22 * self.FZP_dr)
-        self.FZP_objectNA = np.asarray(self.wavelength / (2 * self.FZP_dr))
-        self.FZP_DOF = np.asarray(2 * self.FZP_dr ** 2 / self.wavelength)
-        self.FZP_Nzones = np.asarray(self.FZP_D / (4 * self.FZP_dr))
-        self.FZP_f = np.asarray(self.FZP_D * self.FZP_dr / self.wavelength)
+    def _update_label_value(self, name):
+        """
+        Updathe the label with the name with the current value
+        (or values for arrays).
 
-        self.label_1.setText(str(self.wavelength * 1e10))
-        self.label_2.setText(str(self.FZP_resolution * 1e9))
-        self.label_3.setText(str(self.FZP_objectNA))
-        self.label_4.setText(str(self.FZP_DOF * 1e6))
-        self.label_5.setText(str(self.FZP_Nzones))
-        self.label_6.setText(str(self.FZP_f * 1e3))
-        self._updateParameters2()
-
-    def _updateParameters2(self):
-        if self.det_useEffPix:
-            self.M_total = np.asarray(self.det_PixSize / self.eff_pix)
-            self.M_xray = np.asarray(self.M_total / self.M_det)
-            self.dist_sample_FZP = np.asarray(
-                self.FZP_f * (1.0 + self.M_xray) / self.M_xray
-        )
-            self.dist_FZP_det = np.asarray(self.FZP_f * (1.0 + self.M_xray))
-            self.dist_sample_det = np.asarray(self.dist_FZP_det
-                                                 + self.dist_sample_FZP)
-        else:  # i.e. use distance sample-det
-            self.dist_sample_FZP = np.asarray(
-                self.dist_sample_det / 2
-                - (self.dist_sample_det ** 2 / 4
-                   - self.dist_sample_det * self.FZP_f) ** 0.5
-           )
-            self.dist_FZP_det = np.asarray(self.dist_sample_det
-                                              - self.dist_sample_FZP)
-            self.M_xray = np.asarray(self.dist_FZP_det
-                                        / self.dist_sample_FZP)
-            self.M_total = np.asarray(self.M_xray * self.M_det)
-            self.eff_pix = np.asarray(self.det_PixSize / self.M_total)
-
-        self.det_FOVhor = np.asarray(self.eff_pix * self.det_Nhor)
-        self.det_FOVvert = np.asarray(self.eff_pix * self.det_Nvert)
-        self.FZP_imageNA = self.FZP_D / 2 / self.dist_FZP_det
-        self.FZP_angularFOV = (
-            2 * (self.wavelength / (5 * self.FZP_imageNA ** 2)
-            / (self.dist_FZP_det + self.M_xray ** 2 * self.dist_sample_FZP)
-            + 1) ** 2 - 2
-        )
-        self.FZP_FOV = self.FZP_angularFOV * 2 * self.dist_sample_FZP
-
-        self.label_101.setText(str(self.det_FOVhor * 1e6))
-        self.label_102.setText(str(self.det_FOVvert * 1e6))
-        self.label_103.setText(str(self.dist_sample_det))
-        self.label_104.setText(str(self.eff_pix * 1e9))
-        self.label_105.setText(str(self.M_xray))
-        self.label_106.setText(str(self.M_total))
-        self.label_107.setText(str(self.dist_sample_FZP * 1e3))
-        self.label_108.setText(str(self.FZP_angularFOV * 1e3))
-        self.label_109.setText(str(self.FZP_FOV * 1e6))
-        self._updateParameters3()
-
-    def _updateParameters3(self):
-        self.BSC_f = np.asarray(self.BSC_D * self.FZP_dr / self.wavelength)
-        self.dist_BSC_sample = np.asarray(
-            240. / 2 - (240. ** 2 / 4 - 240. * self.BSC_f) ** 0.5
-        )
-        self.dist_source_BSC = np.asarray(240. - self.dist_BSC_sample)
-        self.BSC_Nzones = self.BSC_D / (4 * self.BSC_dr)
-        if self.BSC_useFullDet:
-            self.BSC_CShor = np.asarray(
-                self.det_PixSize * self.det_Nhor * self.dist_BSC_sample
-                / self.dist_sample_det / self.M_det
-            )
-            self.BSC_CSvert = np.asarray(
-                self.det_PixSize * self.det_Nvert * self.dist_BSC_sample
-                / self.dist_sample_det / self.M_det
-            )
-            self.BSC_CS = np.where(
-                self.BSC_CShor >= self.BSC_CSvert, self.BSC_CShor,
-                self.BSC_CSvert
-            )
-        self.BSC_effFOV = (self.BSC_CS / self.dist_BSC_sample
-                           * self.dist_sample_det / self.M_xray)
-        self.tmpval = 1 - self.BSC_CS ** 2 / (np.pi * (self.BSC_D / 2) ** 2)
-        self.BSC_freeArea = np.where(self.tmpval > 0, self.tmpval, 0)
-
-        tmp_hor = np.amin(
-            np.concatenate([[self.det_FOVhor], [self.BSC_effFOV]]), axis=0)
-        eff_hor = np.where(
-            tmp_hor < self.BSC_field, tmp_hor / self.BSC_field, 1)
-        tmp_vert = np.amin(
-            np.concatenate([[self.det_FOVhor], [self.BSC_effFOV]]), axis=0)
-        eff_vert = np.where(
-            tmp_vert < self.BSC_field, tmp_vert / self.BSC_field, 1)
-
-        self.total_eff =  eff_hor * eff_vert * self.BSC_freeArea
-        self.label_200.setText(str(self.BSC_CS * 1e3))
-        self.label_201.setText(str(self.BSC_f))
-        self.label_203.setText(str(self.BSC_effFOV * 1e6))
-        self.label_204.setText(str(self.BSC_freeArea * 100))
-        self.label_205.setText(str(self.dist_BSC_sample))
-
-        self.label_202.setText(str(np.round(self.total_eff*100, 1)))
-
-        if tmp_hor.size == 1:
-            self.label_206.setText('%.1f um \u2259 %i px'
-                                   %(tmp_hor*1e6, tmp_hor/self.eff_pix))
-            self.label_207.setText('%.1f um \u2259 %i px'
-                                   %(tmp_vert*1e6, tmp_vert/self.eff_pix))
+        Parameters
+        ----------
+        name : str
+            The variable name.
+        """
+        _vals = getattr(self, name) * CONST.SCALING_FACTOR[name]
+        if _vals.size == 1:
+            _text = str(np.round(_vals, 4))
         else:
-            self.label_206.setText(str(np.round(tmp_hor*1e6, 1)))
-            self.label_207.setText(str(np.round(tmp_vert*1e6, 1)))
+            _text = self.__get_range_string_from_array(_vals)
+        _label = getattr(self, f'label_{name}')
+        _label.setText(_text)
 
-        self.check_NFZP = (
-            np.where((self.FZP_Nzones > 100), True, False)
-            * np.where((self.FZP_Nzones < 1 / self.bandwidth), True, False))
-        self.check_DOF = np.where(self.FZP_DOF >= self.BSC_effFOV, True,
-                                     False)
-        self.check_NBSC = np.where(self.BSC_Nzones < 1 / self.bandwidth,
-                                      True, False)
-        self.RefreshPlot()
+    @staticmethod
+    def __get_range_string_from_array(arr):
+        """
+        Get a short string which describes the value range of an array.
 
-    def selectParametersDet(self):
-        tmp = str(self.comboBox_ParametersDet.currentText())
-        if tmp == 'Set detector effective pixel size':
-            self.det_useEffPix = True
-            for item in [self.label_21, self.edit_dist_sample_det,
-                         self.but_SetDistSampleDet, self.label_54,
-                         self.label_104]:
-                item.setVisible(False)
-            for item in [self.label_20, self.edit_eff_pix, self.but_SetEffPix,
-                         self.label_53, self.label_103]:
-                item.setVisible(True)
-            self.edit_eff_pix.setText(str(self.eff_pix * 1e9))
-        if tmp == 'Set target distance sample-det':
-            self.det_useEffPix = False
-            for item in [self.label_21, self.edit_dist_sample_det,
-                         self.but_SetDistSampleDet, self.label_54,
-                         self.label_104]:
-                item.setVisible(True)
-            for item in [self.label_20, self.edit_eff_pix, self.but_SetEffPix,
-                         self.label_53, self.label_103]:
-                item.setVisible(False)
-                self.edit_dist_sample_det.setText(str(self.dist_sample_det))
-        self._updateParameters2()
+        Parameters
+        ----------
+        arr : np.ndarray
+            The input array
 
-    def selectParametersCS(self):
-        tmp = str(self.comboBox_ParametersCS.currentText())
-        if tmp == 'Use full detector FOV':
-            self.BSC_useFullDet = True
-            for item in [self.edit_BSC_CS, self.but_SetBSC_CS]:
-                item.setVisible(False)
-            self.label_200.setVisible(True)
-        if tmp == 'Select central stop size':
-            self.BSC_useFullDet = False
-            for item in [self.edit_BSC_CS, self.but_SetBSC_CS]:
-                item.setVisible(True)
-            self.label_200.setVisible(False)
-        self._updateParameters2()
+        Returns
+        -------
+        str :
+            The formatted string with the array range.
+        """
+        _low = np.round(arr[0], 4)
+        _high = np.round(arr[-1], 4)
+        _text = str(f'{_low} [...] {_high}')
+        return _text
 
-    def clickButtonSetAttribute(self, att_name, call_update):
+    def update_attribute(self, att_name, call_update):
+        """
+        Generic method to update a parameter.
+
+        This method will read the QLineEdit and parse the value to an array.
+        The required update function is called to have all derived values
+        up to date with the new input.
+
+        Parameters
+        ----------
+        att_name : str
+            The name of the attribute to update.
+        call_update : method
+            The name of the update method to calculate all derived values.
+        """
         _edit = getattr(self, f'edit_{att_name}')
         if self.activeVar == att_name:
             self.activeVar = None
         try:
-            _tmpval = UTILS.get_array_from_str(_edit.text())
+            _tmpval = utils.get_array_from_str(_edit.text())
         except Exception as e:
             QtWidgets.QMessageBox.critical(
                 self, 'Error',
@@ -503,79 +316,193 @@ class cTXMCalculator(QtWidgets.QMainWindow):
                  f'input parameter arrays selected:\n{e}'),
                 buttons=QtWidgets.QMessageBox.Ok)
             return
-        _edit.setText(str(_tmpval))
+        if _tmpval.size > 1:
+            _text = '[' + ', '.join([str(val) for val in _tmpval]) + ']'
+        else:
+            _text = str(_tmpval)
+        _edit.setText(_text)
         setattr(self, att_name, _tmpval / CONST.SCALING_FACTOR[att_name])
         if _tmpval.size > 1:
             self.activeVar = att_name
         call_update()
 
-    def changePlot1Type(self):
-        self.plot1Type = str(self.comboBox_plot1.currentText())
-        self.RefreshPlot()
+    def _updateParameters1(self):
+        """
+        Update all parameters from group 1 (FZP parameters).
+        """
+        self.wavelength = 12.398e-10 / self.energy
+        self.FZP_resolution = np.maximum(
+            1.22 * self.FZP_dr,
+            0.61 * (self.FZP_D * self.FZP_dr * self.bandwidth)**0.5)
+        self.FZP_objectNA = np.asarray(self.wavelength / (2 * self.FZP_dr))
+        self.FZP_DOF = np.asarray(2 * self.FZP_dr ** 2 / self.wavelength)
+        self.FZP_Nzones = np.asarray(self.FZP_D / (4 * self.FZP_dr))
+        self.FZP_f = np.asarray(self.FZP_D * self.FZP_dr / self.wavelength)
 
-    def changePlot2Type(self):
-        self.plot2Type = str(self.comboBox_plot2.currentText())
-        self.RefreshPlot()
+        for _name in ['wavelength', 'FZP_resolution', 'FZP_objectNA',
+                      'FZP_DOF', 'FZP_Nzones', 'FZP_f']:
+            self._update_label_value(_name)
+        self._updateParameters2()
 
-    def changePlot1Autoscale(self):
-        _txt = self.comboBox_plot1_autoscale.currentText()
-        self.plot1Autoscale = True if _txt == 'True' else False
-        self.RefreshPlot()
+    def _updateParameters2(self):
+        """
+        Update all parameters from group 1 (Experimental layout / detector).
+        """
+        if self.det_useEffPix:
+            self.M_total = np.asarray(self.det_PixSize / self.eff_pix)
+            self.M_xray = np.asarray(self.M_total / self.M_det)
+            self.dist_sample_FZP = np.asarray(
+                self.FZP_f * (1.0 + self.M_xray) / self.M_xray)
+            self.dist_FZP_det = np.asarray(self.FZP_f * (1.0 + self.M_xray))
+            self.dist_sample_det = np.asarray(self.dist_FZP_det
+                                              + self.dist_sample_FZP)
+        else:  # i.e. use distance sample-det
+            self.dist_sample_FZP = utils.calc_working_dists(
+                self.dist_sample_det, self.FZP_f)[0]
+            self.dist_FZP_det = np.asarray(self.dist_sample_det
+                                           - self.dist_sample_FZP)
+            self.M_xray = np.asarray(self.dist_FZP_det
+                                     / self.dist_sample_FZP)
+            self.M_total = np.asarray(self.M_xray * self.M_det)
+            self.eff_pix = np.asarray(self.det_PixSize / self.M_total)
 
-    def changePlot2Autoscale(self):
-        _txt = self.comboBox_plot2_autoscale.currentText()
-        self.plot2Autoscale = True if _txt == 'True' else False
-        self.RefreshPlot()
+        self.det_FOVhor = np.asarray(self.eff_pix * self.det_Nhor)
+        self.det_FOVvert = np.asarray(self.eff_pix * self.det_Nvert)
+        self.FZP_imageNA = self.FZP_D / 2 / self.dist_FZP_det
+        self.FZP_angularFOV = (
+            2 * (self.wavelength / (5 * self.FZP_imageNA ** 2)
+                 / (self.dist_FZP_det + self.M_xray ** 2
+                    * self.dist_sample_FZP)
+                 + 1) ** 2 - 2)
+        self.FZP_FOV = self.FZP_angularFOV * 2 * self.dist_sample_FZP
 
-    def changePlot1LimitLow(self):
-        self.plot1ylow = self.edit_plot1Low.value()
-        if self.plot1ylow >= self.plot1yhigh:
-            self.plot1ylow = self.plot1yhigh - 1
+        for _name in ['det_FOVhor', 'det_FOVvert', 'dist_sample_det',
+                      'eff_pix', 'M_xray', 'M_total', 'dist_sample_FZP',
+                      'FZP_angularFOV', 'FZP_FOV']:
+            self._update_label_value(_name)
+        self._updateParameters3()
+
+    def _updateParameters3(self):
+        """
+        Update all parameters from group 1 (beamshaper / illumination).
+        """
+        self.BSC_f = np.asarray(self.BSC_D * self.FZP_dr / self.wavelength)
+
+        self.dist_BSC_sample = utils.calc_working_dists(CONST.SOURCE_DIST,
+                                                        self.BSC_f)[0]
+        self.dist_source_BSC = CONST.SOURCE_DIST - self.dist_BSC_sample
+        if self.BSC_useFullDet:
+            self.BSC_CShor = np.asarray(
+                self.det_PixSize * self.det_Nhor * self.dist_BSC_sample
+                / self.dist_sample_det / self.M_det)
+            self.BSC_CSvert = np.asarray(
+                self.det_PixSize * self.det_Nvert * self.dist_BSC_sample
+                / self.dist_sample_det / self.M_det)
+            self.BSC_CS = np.where(
+                self.BSC_CShor >= self.BSC_CSvert, self.BSC_CShor,
+                self.BSC_CSvert)
+        self.BSC_effFOV = (self.BSC_CS / self.dist_BSC_sample
+                           * self.dist_sample_det / self.M_xray)
+        _tmpval = 1 - self.BSC_CS ** 2 / (np.pi * (self.BSC_D / 2) ** 2)
+        self.BSC_freeArea = np.where(_tmpval > 0, _tmpval, 0)
+        tmp_hor = np.minimum(self.det_FOVhor, self.BSC_effFOV)
+        eff_hor = np.where(
+            tmp_hor < self.BSC_field, tmp_hor / self.BSC_field, 1)
+        tmp_ver = np.minimum(self.det_FOVvert, self.BSC_effFOV)
+        eff_vert = np.where(
+            tmp_ver < self.BSC_field, tmp_ver / self.BSC_field, 1)
+
+        self.total_eff =  eff_hor * eff_vert * self.BSC_freeArea
+
+        for _name in ['BSC_CS', 'BSC_f', 'BSC_effFOV',
+                      'BSC_freeArea', 'dist_BSC_sample', 'total_eff']:
+            self._update_label_value(_name)
+
+        if tmp_hor.size == 1:
+            _text = (f'{tmp_hor*1e6:.1f} um \u2259 '
+                     f'{int(tmp_hor/self.eff_pix)} px')
+        else:
+            _text = self.__get_range_string_from_array(tmp_hor * 1e6)
+        self.label_FOV_hor.setText(_text)
+        if tmp_ver.size == 1:
+            _text = (f'{tmp_ver*1e6:.1f} um \u2259 '
+                     f'{int(tmp_ver/self.eff_pix)} px')
+        else:
+            _text = self.__get_range_string_from_array(tmp_ver * 1e6)
+        self.label_FOV_vert.setText(_text)
+
+        self.check_NFZP = (
+            np.where((self.FZP_Nzones > 100), True, False)
+            * np.where((self.FZP_Nzones < 1 / self.bandwidth), True, False))
+        self.check_DOF = np.where(self.FZP_DOF >= self.BSC_effFOV, True,
+                                     False)
+        self.refresh_plots()
+
+    def selectParametersDet(self):
+        tmp = str(self.comboBox_ParametersDet.currentText())
+        if tmp == 'Set detector effective pixel size':
+            self.det_useEffPix = True
+            self.edit_eff_pix.setText(str(self.eff_pix * 1e9))
+        else:
+            self.det_useEffPix = False
+            self.edit_dist_sample_det.setText(str(self.dist_sample_det))
+        for item in [self.label_input_dist_sample_det,
+                     self.edit_dist_sample_det, self.label_eff_pix,
+                     self.label_name_eff_pix]:
+            item.setVisible(not self.det_useEffPix)
+        for item in [self.label_input_eff_pix, self.edit_eff_pix,
+                     self.label_name_dist_sample_det,
+                     self.label_dist_sample_det]:
+            item.setVisible(self.det_useEffPix)
+        self._updateParameters2()
+
+    def selectParametersCS(self):
+        tmp = str(self.comboBox_ParametersCS.currentText())
+        if tmp == 'Use full detector FOV':
+            self.BSC_useFullDet = True
+        else:
+            self.BSC_useFullDet = False
+        self.edit_BSC_CS.setVisible(not self.BSC_useFullDet)
+        self.label_BSC_CS.setVisible(self.BSC_useFullDet)
+        self._updateParameters2()
+
+    def change_plot_type(self, index):
+        _box = getattr(self, f'comboBox_plot{index}_type')
+        _text = _box.currentText()
+        setattr(self, f'plot{index}_type', _text)
+        self.refresh_plots()
+
+    def change_plot_autoscale(self, index):
+        _box = getattr(self, f'comboBox_plot{index}_autoscale')
+        _txt = _box.currentText()
+        _val = True if _txt == 'True' else False
+        setattr(self, f'plot{index}_autoscale', _val)
+        self.refresh_plots()
+
+    def change_plot_limit(self, index, limit):
+        _low_edit = getattr(self, f'edit_plot{index}low')
+        _high_edit = getattr(self, f'edit_plot{index}high')
+        _low = _low_edit.value()
+        _high = _high_edit.value()
+        if _low >= _high:
+            if limit == 'low':
+                _high = _low + 1
+            elif limit == 'high':
+                _low = _high - 1
+        setattr(self, f'plot{index}ylow', _low)
+        setattr(self, f'plot{index}yhigh', _high)
         if not self.ignoreUpdate:
-            self.RefreshPlot()
+            self.refresh_plots()
 
-    def changePlot1LimitHigh(self):
-        self.plot1yhigh = self.edit_plot1High.value()
-        if self.plot1ylow >= self.plot1yhigh:
-            self.plot1yhigh = self.plot1ylow + 1
-        if not self.ignoreUpdate:
-            self.RefreshPlot()
+    def change_plot_variable(self, index):
+        _box = getattr(self, f'comboBox_plot{index}_variable')
+        _txt = _box.currentText()
+        _var = CONST.PLOT_VAR_NAMES[_txt]
+        setattr(self, f'plot{index}var', _var)
+        self.refresh_plots()
 
-    def changePlot2LimitLow(self):
-        self.plot2ylow = self.edit_plot2Low.value()
-        if self.plot2ylow >= self.plot2yhigh:
-            self.plot2ylow = self.plot2yhigh - 1
-        if not self.ignoreUpdate:
-            self.RefreshPlot()
-
-    def changePlot2LimitHigh(self):
-        self.plot2yhigh = self.edit_plot2High.value()
-        if self.plot2ylow >= self.plot2yhigh:
-            self.plot2yhigh = self.plot2ylow + 1
-        if not self.ignoreUpdate:
-            self.RefreshPlot()
-
-    def changePlot1Variable(self):
-        self.plot1var = CONST.PLOT_VAR_NAMES[
-            str(self.comboBox_plot1_variable.currentText())]
-        self.RefreshPlot()
-
-    def changePlot2Variable(self):
-        self.plot2var = CONST.PLOT_VAR_NAMES[
-            str(self.comboBox_plot2_variable.currentText())]
-        self.RefreshPlot()
-
-    def RefreshPlot(self):
-        if self.figureExists:
-            self.figure2ax.lines.pop(0)
-            self.figure2ax.lines.pop(0)
-            self.figure2ax.lines.pop(0)
-        if self.ax1plotContent:
-            self.f1ax1.cla()
-            self.ax1plotContent = False
-        if self.ax2plotContent:
-            self.f1ax2.cla()
-            self.ax2plotContent = False
+    def refresh_plots(self):
+        self.__clear_plot()
         if self.activeVar == None or getattr(self, self.activeVar).size == 1:
             return
 
@@ -584,91 +511,83 @@ class cTXMCalculator(QtWidgets.QMainWindow):
                       * CONST.SCALING_FACTOR[self.activeVar])
 
         if self.plot1var is not None:
-            self.tmpval = (getattr(self, self.plot1var)
-                           * CONST.SCALING_FACTOR[self.plot1var])
-            if self.tmpval.size == 1:
-                self.tmpval = np.array([self.tmpval] * self.plotx.size)
-            if self.plot1Type == 'logarithmic':
-                self.f1ax1.set_yscale('log')
-                self.f1ax1.semilogy(
-                    self.plotx, self.tmpval, color=CONST.COLORS[3],
-                    linewidth=1.5, markeredgewidth=0, markersize=4, marker='o')
-            elif self.plot1Type == 'linear':
-                self.f1ax1.set_yscale('linear')
-                self.f1ax1.plot(
-                    self.plotx, self.tmpval, color=CONST.COLORS[3],
-                    linewidth=1.5, markeredgewidth=0, markersize=4, marker='o')
-            self.f1ax1.set_ylabel(CONST.PLOT_AXIS_LABELS[self.plot1var],
-                                  color=CONST.COLORS[3])
-            self.ax1plotContent = True
-            self.f1ax1.set_xlabel(self.plotTitle)
-            if self.plot1Autoscale:
-                ylow, yhigh = np.amin(self.tmpval), np.amax(self.tmpval)
-                ylow = min(0.995 * ylow, 1.01 * ylow)
-                yhigh = max(0.995 * yhigh, 1.01 * yhigh)
-                self.f1ax1.set_ylim([ylow, yhigh])
-                self.ignoreUpdate = True
-                self.edit_plot1Low.setValue(ylow)
-                self.edit_plot1High.setValue(yhigh)
-                self.edit_plot1Low.setValue(ylow)
-                self.edit_plot1High.setValue(yhigh)
-                self.ignoreUpdate = False
-            else:
-                self.f1ax1.set_ylim([self.plot1ylow, self.plot1yhigh])
-            self.f1ax1.set_xlim([self.plotx[0], self.plotx[-1]])
-        if self.plot2var != None:
-            self.tmpval = (getattr(self, self.plot2var)
-                           * CONST.SCALING_FACTOR[self.plot2var])
-            if self.tmpval.size == 1:
-                self.tmpval = np.array([self.tmpval] * self.plotx.size)
-            if self.plot2Type == 'logarithmic':
-                self.f1ax2.set_yscale('log')
-                self.f1ax2.semilogy(
-                    self.plotx, self.tmpval, color=CONST.COLORS[1],
-                    linewidth=1.5, markeredgewidth=0, markersize=4, marker='o')
-            elif self.plot2Type == 'linear':
-                self.f1ax2.set_yscale('linear')
-                self.f1ax2.plot(
-                    self.plotx, self.tmpval, color=CONST.COLORS[1],
-                    linewidth=1.5, markeredgewidth=0, markersize=4, marker='o')
-            self.f1ax2.set_ylabel(CONST.PLOT_AXIS_LABELS[self.plot2var],
-                                  color=CONST.COLORS[1])
-            self.f1ax1.set_xlabel(self.plotTitle)
-            self.ax2plotContent = True
-            if self.plot2Autoscale:
-                ylow, yhigh = np.amin(self.tmpval), np.amax(self.tmpval)
-                ylow = min(0.99 * ylow, 1.005 * ylow)
-                yhigh = max(0.99 * yhigh, 1.005 * yhigh)
-                self.f1ax2.set_ylim([ylow, yhigh])
-                self.ignoreUpdate = True
-                self.edit_plot2Low.setValue(ylow)
-                self.edit_plot2High.setValue(yhigh)
-                self.edit_plot2Low.setValue(ylow)
-                self.edit_plot2High.setValue(yhigh)
-                self.ignoreUpdate = False
-            if not self.plot2Autoscale:
-                self.f1ax2.set_ylim([self.plot2ylow, self.plot2yhigh])
-            self.f1ax2.set_xlim([self.plotx[0], self.plotx[-1]])
+            self.__plot_variable(1, CONST.COLORS[3])
+        if self.plot2var is not None:
+            self.__plot_variable(2, CONST.COLORS[1])
+        self.__plot_checks()
+        self.figure1Canvas.draw()
+        self.figure2Canvas.draw()
 
-        if not self.plot2Autoscale:
-            self.f1ax2.set_ylim([self.plot2ylow, self.plot2yhigh])
+    def __clear_plot(self):
+        """
+        Remove any existing items from the plot.
+        """
+        if self.figureExists:
+            self.figure2ax.cla()
+        if self.axContentPlot1:
+            self.f1ax1.cla()
+            self.axContentPlot1 = False
+        if self.axContentPlot2:
+            self.f1ax2.cla()
+            self.axContentPlot2 = False
 
+    def __plot_variable(self, index, color):
+        """
+        Plot a figure for the specified variable
+
+        Parameters
+        ----------
+        index : int
+            The variable index. Can be 1 or 2.
+        color : str
+            A RGB color code for the line.
+        """
+        _ax = getattr(self, f'f1ax{index}')
+        _plotvar = getattr(self, f'plot{index}var')
+        _tmpval = getattr(self, _plotvar) * CONST.SCALING_FACTOR[_plotvar]
+        if _tmpval.size == 1:
+            _tmpval = np.array([_tmpval] * self.plotx.size)
+        if getattr(self, f'plot{index}_type') == 'logarithmic':
+            _ax.set_yscale('log')
+            _plotfunc = _ax.semilogy
+        else: # linear plot
+            _ax.set_yscale('linear')
+            _plotfunc = _ax.plot
+        _plotfunc(self.plotx, _tmpval, color=color,
+                  linewidth=1.5, markeredgewidth=0, markersize=4, marker='o')
+        _ax.set_ylabel(CONST.PLOT_AXIS_LABELS[self.plot1var], color=color)
+        _ax.set_xlabel(self.plotTitle)
+        setattr(self, f'axContentPlot{index}', True)
+        if getattr(self, f'plot{index}_autoscale'):
+            ylow, yhigh = np.amin(_tmpval), np.amax(_tmpval)
+            ylow = min(0.995 * ylow, 1.01 * ylow)
+            yhigh = max(0.995 * yhigh, 1.01 * yhigh)
+            _ax.set_ylim([ylow, yhigh])
+            self.ignoreUpdate = True
+            _edit_low = getattr(self, f'edit_plot{index}low')
+            _edit_low.setValue(ylow)
+            _edit_high = getattr(self, f'edit_plot{index}high')
+            _edit_high.setValue(yhigh)
+            self.ignoreUpdate = False
+        else:
+            _ax.set_ylim([getattr(self, f'plot{index}ylow'),
+                          getattr(self, f'plot{index}yhigh')])
+        _ax.set_xlim([self.plotx[0], self.plotx[-1]])
+
+    def __plot_checks(self):
+        """
+        Plot the bandwidth and depth of focus checks.
+        """
         if self.check_NFZP.size == 1:
             self.check_NFZP = np.array([self.check_NFZP] * self.plotx.size)
         if self.check_DOF.size == 1:
             self.check_DOF = np.array([self.check_DOF] * self.plotx.size)
-        if self.check_NBSC.size == 1:
-            self.check_NBSC = np.array([self.check_NBSC] * self.plotx.size)
         self.figure2ax.plot(
             self.plotx, self.check_NFZP + 0.05, color=CONST.COLORS[3],
-            linewidth=1.5, markeredgewidth=0, markersize=4, marker='o'
-        )
+            linewidth=1.5, markeredgewidth=0, markersize=4, marker='o')
         self.figure2ax.plot(
             self.plotx, self.check_DOF, color=CONST.COLORS[1], linewidth=1.5,
             markeredgewidth=0, markersize=4, marker='o')
-        self.figure2ax.plot(
-            self.plotx, self.check_NBSC - 0.05, color=CONST.COLORS[2],
-            linewidth=1.5, markeredgewidth=0, markersize=4, marker='o')
         self.figure2ax.set_ylim(-0.5, 1.8)
         self.figure2ax.set_xlim([self.plotx[0], self.plotx[-1]])
         self.figure2ax.set_yticks([0, 1])
@@ -677,15 +596,15 @@ class cTXMCalculator(QtWidgets.QMainWindow):
         if not self.figureExists:
             self.figure2.text(0.15, 0.79, 'Number of FZP zones',
                               color=CONST.COLORS[3])
-            self.figure2.text(0.425, 0.79, 'Depth of field',
+            self.figure2.text(0.65, 0.79, 'Depth of field',
                               color=CONST.COLORS[1])
-            self.figure2.text(0.65, 0.79, 'Number of BSC zones',
-                              color=CONST.COLORS[2])
             self.figureExists = True
-        self.figure1Canvas.draw()
-        self.figure2Canvas.draw()
 
     def writeData(self):
+        """
+        Write data to txt files and plots and zip everything into a single
+        zip file.
+        """
         if self.zip_basedir == None:
             self.zip_fname = QtWidgets.QFileDialog.getSaveFileName(
                 self, 'Name of logfile', '', "Zip files (*.zip)")[0]
@@ -748,7 +667,7 @@ class cTXMCalculator(QtWidgets.QMainWindow):
                 writeItem = True
                 if item == 'dist_sample_det' and self.det_useEffPix:
                     writeItem = False
-                if item == 'det_eff_pix' and not self.det_useEffPix:
+                if item == 'eff_pix' and not self.det_useEffPix:
                     writeItem = False
                 if item == 'BSC_CS' and self.BSC_useFullDet:
                     writeItem = False
@@ -756,7 +675,7 @@ class cTXMCalculator(QtWidgets.QMainWindow):
                     writeItem = False
                 if writeItem:
                     self.txt_parameters += (
-                        UTILS.stringFill(CONST.PLOT_TITLES[item] + ':', 40)
+                        utils.stringFill(CONST.PLOT_TITLES[item] + ':', 40)
                         + ' '
                         + str(self.__dict__[item]
                               * CONST.SCALING_FACTOR[item]) + '\n'
@@ -775,23 +694,14 @@ class cTXMCalculator(QtWidgets.QMainWindow):
                         zobject.write(
                             self.zip_basedir + os.sep + item
                             + '_vs_%s.txt' % self.activeVar,
-                            item + '_vs_%s.txt' % self.activeVar
-                        )
-                        os.remove(
-                            self.zip_basedir + os.sep + item
-                            + '_vs_%s.txt' % self.activeVar
-                        )
-                        os.remove(
-                            self.zip_basedir + os.sep + item
-                            + '_vs_%s.png' % self.activeVar
-                        )
-                    zobject.write(
-                        self.zip_basedir + os.sep + '_Input_Parameters.txt',
-                        '_Input_Parameters.txt'
-                    )
-                    os.remove(
-                        self.zip_basedir + os.sep + '_Input_Parameters.txt'
-                    )
+                            item + '_vs_%s.txt' % self.activeVar)
+                        os.remove(self.zip_basedir + os.sep + item
+                            + '_vs_%s.txt' % self.activeVar)
+                        os.remove(self.zip_basedir + os.sep + item
+                            + '_vs_%s.png' % self.activeVar)
+                    zobject.write(self.zip_basedir + os.sep + '_Input_Parameters.txt',
+                        '_Input_Parameters.txt')
+                    os.remove(self.zip_basedir + os.sep + '_Input_Parameters.txt')
             except:
                 self.zip_fobject = None
                 QtWidgets.QMessageBox.critical(

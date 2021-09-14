@@ -120,3 +120,28 @@ def get_array_from_str(string):
             return np.linspace(float(_items[0]), float(_items[1]),
                              float(_items[2]))
     return np.asarray(float(string))
+
+def calc_working_dists(d_total, f):
+    """
+    Calculate the working positions of an optical element based on its focal
+    length and the total distance between object and image.
+
+    Parameters
+    ----------
+    d_total : Union[float, np.ndarray]
+        The total distance between object and image
+    f : Union[float, np.ndarray]
+        The optics working distance.
+
+    Returns
+    -------
+    np.ndarray :
+        The short distance which satisfies the focusing condition.
+    np.ndarray :
+        The long distance which satisfies the focusing condition.
+    """
+    _p = d_total / 2
+    _q = f * d_total
+    _d_short = np.asarray(_p - (_p ** 2 - _q)**0.5)
+    _d_long =  np.asarray(_p + (_p ** 2 - _q)**0.5)
+    return _d_short, _d_long
